@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DASHBOARD KINH DOANH - PSERP SYSTEMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --text-muted: #64748b;
+            --bg: #f8fafc;
+            --border: #cbd5e1;
+            --bg-kpi-top: #e2e8f0;
+            --text-kpi-main: #2563eb;
+            --box-border-color: rgba(37, 99, 235, 0.3);
+            --neo-shadow: 4px 4px 0px rgba(15, 23, 42, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--dark);
+            padding: 12px;
+            line-height: 1.4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 1.0rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-size: 1.15rem;
+            color: white;
+            font-weight: 400;
+            backdrop-filter: blur(4px);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--primary-light);
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .filter-toolbar {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 2px solid var(--box-border-color);
+            box-shadow: var(--neo-shadow);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+        }
+
+        .filter-group label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: var(--dark);
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 2px solid var(--box-border-color);
+            border-radius: 8px;
+            background-color: #fafafa;
+            font-size: 0.90rem;
+            font-weight: 400;
+            color: var(--dark);
+            outline: none;
+            transition: all 0.2s;
+            height: 38px;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            background-color: white;
+            box-shadow: 2px 2px 0px var(--primary-light);
+        }
+
+        .searchable-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-trigger {
+            background: #fafafa;
+            border: 2px solid var(--box-border-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.90rem;
+            font-weight: 400;
+            height: 38px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 105%;
+            left: 0;
+            width: 100%;
+            min-width: 280px;
+            max-width: 400px;
+            background: white;
+            border: 2px solid var(--box-border-color);
+            border-radius: 8px;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            display: none;
+            max-height: 300px;
+            overflow: hidden;
+            padding: 8px;
+        }
+
+        .dropdown-menu input {
+            width: 100%;
+            margin-bottom: 8px;
+            height: 34px;
+            background: white;
+            border: 2px solid var(--box-border-color);
+            border-radius: 6px;
+            padding: 0 10px;
+            font-size: 0.88rem;
+            outline: none;
+        }
+
+        .dropdown-options {
+            max-height: 230px;
+            overflow-y: auto;
+        }
+
+        .dropdown-item {
+            padding: 8px 10px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 400;
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.3;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg);
+            color: var(--primary-light);
+        }
+
+        .dropdown-item.selected {
+            background: #eff6ff;
+            color: var(--primary-light);
+            font-weight: 500;
+        }
+
+        .top-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .premium-card {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid var(--box-border-color);
+            box-shadow: var(--neo-shadow);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 90px;
+        }
+
+        .top-kpi-grid .premium-card {
+            background: var(--bg-kpi-top);
+            color: #475569;
+        }
+
+        .kpi-box-grid .premium-card {
+            background: #ffffff;
+            color: #475569;
+        }
+
+        .card-header-zone {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header-zone h3 {
+            font-size: 0.76rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .premium-card .main-value {
+            color: var(--text-kpi-main) !important;
+        }
+
+        .top-kpi-grid .card-icon-wrapper {
+            background: #cbd5e1;
+            color: #334155;
+        }
+
+        .kpi-box-grid .card-icon-wrapper {
+            background: #f1f5f9;
+            color: var(--text-muted);
+        }
+
+        .card-icon-wrapper {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-body-zone {
+            margin-top: 4px;
+        }
+
+        .card-body-zone .main-value {
+            font-size: 1.85rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .card-footer-progress {
+            width: 100%;
+            height: 6px;
+            background: #cbd5e1;
+            border-radius: 100px;
+            margin-top: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card-progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #2563eb;
+            transition: width 0.5s ease;
+        }
+
+        .main-dashboard-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            align-items: start;
+            width: 100%;
+        }
+
+        .left-panels {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+        }
+
+        .analytics-container {
+            background: white;
+            border: 2px solid var(--box-border-color);
+            border-radius: 12px;
+            box-shadow: var(--neo-shadow);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .container-title {
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            color: var(--dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .container-title .title-text {
+            font-weight: 700;
+        }
+
+        .container-title div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .container-title i {
+            color: var(--primary-light);
+        }
+
+        .container-title .badge-count {
+            background: var(--danger);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid var(--box-border-color);
+        }
+
+        .kpi-box-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-box-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-box-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-box-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 2px solid var(--box-border-color);
+            background: white;
+        }
+
+        .report-table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+
+        .report-table th {
+            background: #f1f5f9;
+            color: var(--dark);
+            font-weight: 500;
+            padding: 10px 12px;
+            border-bottom: 2px solid var(--box-border-color);
+            text-transform: uppercase;
+            font-size: 0.82rem;
+            white-space: nowrap;
+            vertical-align: middle;
+            line-height: 1.3;
+        }
+
+        .report-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #cbd5e1;
+            color: #334155;
+            font-weight: 400;
+            white-space: normal;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .report-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .scrollable-table-wrapper {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            border: 1px solid var(--box-border-color);
+        }
+
+        .status-badge.in-scope {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.out-scope {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .highlight-danger {
+            color: #dc2626 !important;
+            font-weight: 800;
+        }
+
+        .kpi-box-grid .divider-span {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            font-weight: 300;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .btn-icon {
+            padding: 4px 8px;
+            border: 1px solid var(--box-border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            background: #f8fafc;
+            color: var(--dark);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-icon:hover {
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        .btn-icon.danger {
+            color: var(--danger);
+        }
+
+        .btn-icon.danger:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            border: 2px solid var(--box-border-color);
+            box-shadow: var(--neo-shadow);
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--box-border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .modal-close:hover {
+            color: var(--dark);
+        }
+
+        .modal-body {
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group textarea {
+            padding: 8px 10px;
+            border: 2px solid var(--box-border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.90rem;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+        }
+
+        .form-group textarea:focus {
+            border-color: var(--primary-light);
+            box-shadow: 2px 2px 0px var(--primary-light);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 8px 16px;
+            border: 2px solid var(--box-border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.90rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: white;
+            color: var(--dark);
+        }
+
+        .btn-modal:hover {
+            border-color: var(--primary-light);
+            color: var(--primary-light);
+        }
+
+        .btn-modal.primary {
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        .btn-modal.primary:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+
+        .btn-modal.danger {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .btn-modal.danger:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
+        /* ── CSS KHỐI TÁI BẢN ── */
+        .reprint-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: var(--neo-shadow);
+            border: 2px solid var(--box-border-color);
+            margin-top: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .reprint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .reprint-title-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .reprint-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reprint-badge-count {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: var(--primary-light);
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid #bfdbfe;
+        }
+
+        .reprint-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .mode-switch-group {
+            display: inline-flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+            gap: 4px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .mode-pill-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: #475569;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .mode-pill-btn:hover {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .mode-pill-btn.active {
+            background: #fff;
+            color: var(--primary-light);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .reprint-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .reprint-stats-summary {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .reprint-stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .reprint-stat-pill b {
+            color: #0f172a;
+            font-size: 0.90rem;
+        }
+
+        .reprint-search-input {
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 2px solid var(--box-border-color);
+            font-size: 0.88rem;
+            width: 290px;
+            outline: none;
+            transition: all 0.15s ease;
+            height: 38px;
+        }
+
+        .reprint-search-input:focus {
+            background-color: white;
+            box-shadow: 2px 2px 0px var(--primary-light);
+        }
+
+        .cust-reprint-block {
+            background: #fff;
+            border: 2px solid var(--box-border-color);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: var(--neo-shadow);
+        }
+
+        .cust-reprint-header {
+            background: #f8fafc;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.15s ease;
+        }
+
+        .cust-reprint-header:hover {
+            background: #f1f5f9;
+        }
+
+        .cust-reprint-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cust-reprint-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .cust-toggle-icon {
+            font-size: 0.80rem;
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+
+        .cust-reprint-block.collapsed .cust-toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .cust-reprint-block.collapsed .cust-reprint-body {
+            display: none !important;
+        }
+
+        .cust-reprint-body {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: #ffffff;
+        }
+
+        .chain-block {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .chain-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #cbd5e1;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chain-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chain-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .reprint-table-wrapper {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .reprint-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .reprint-table th {
+            background: #f8fafc;
+            color: #475569;
+            padding: 8px 10px;
+            font-weight: 600;
+            border-bottom: 1px solid #cbd5e1;
+            text-align: left;
+            white-space: nowrap;
+            font-size: 0.80rem;
+            text-transform: uppercase;
+        }
+
+        .reprint-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .reprint-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .reprint-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .chain-boundary-row td {
+            border-bottom: 2px solid #94a3b8 !important;
+        }
+
+        .code-pill {
+            font-family: monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .lsx-pill {
+            font-family: monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #7c3aed;
+            background: #f5f3ff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .nvkd-pill {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #059669;
+            background: #ecfdf5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .role-badge-origin {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #e0e7ff;
+            color: #4338ca;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .role-badge-reorder {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #fef3c7;
+            color: #b45309;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .product-name-text {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #1e293b;
+            max-width: 240px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .product-name-text:hover {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .product-spec-text {
+            font-size: 0.80rem;
+            color: #64748b;
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            line-height: 1.35;
+        }
+
+        .product-spec-text:hover {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .reprint-empty {
+            text-align: center;
+            padding: 30px 16px;
+            color: #94a3b8;
+            font-size: 0.90rem;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        /* ── KHỐI ĐỀ XUẤT MAKE-TO-STOCK (ĐẶT Ở ĐẦU) ── */
+        .cust-mts-box {
+            background: #fffbeb;
+            border: 1.5px solid #fde68a;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 2px;
+            box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .cust-mts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #fcd34d;
+        }
+
+        .cust-mts-title {
+            font-size: 0.90rem;
+            font-weight: 800;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .cust-mts-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #fef3c7;
+        }
+
+        .cust-mts-table th {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px 10px;
+            font-weight: 600;
+            text-align: left;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+        }
+
+        .cust-mts-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #fef3c7;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .cust-mts-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .mts-jump-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.15s ease;
+        }
+
+        .mts-jump-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        @keyframes targetHighlight {
+            0% {
+                background-color: #fef08a;
+            }
+
+            50% {
+                background-color: #fde047;
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        .target-pulse {
+            animation: targetHighlight 2s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loadingText">Đang tối ưu dữ liệu ERP...</div>
+    </div>
+
+    <!-- Filter Toolbar -->
+    <section class="filter-toolbar">
+        <div class="filter-group">
+            <label><i class="fa-solid fa-user-tie"></i> Chọn NVKD</label>
+            <select id="f-emp">
+                <option value="">Tất cả NVKD</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label><i class="fa-solid fa-address-book"></i> Chọn Khách Hàng</label>
+            <div class="searchable-dropdown" id="custDropdown">
+                <div class="dropdown-trigger" id="custTrigger">Tất cả khách hàng <i
+                        class="fa-solid fa-chevron-down"></i></div>
+                <div class="dropdown-menu" id="custMenu">
+                    <input type="text" id="custSearchInput" placeholder="Nhập từ khóa tìm kiếm đầy đủ..."
+                        autocomplete="off">
+                    <div class="dropdown-options" id="custOptions"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label><i class="fa-solid fa-calendar"></i> Năm</label>
+            <select id="f-year"></select>
+        </div>
+    </section>
+
+    <!-- Top KPI Grid -->
+    <section class="top-kpi-grid">
+        <div class="premium-card">
+            <div class="card-header-zone">
+                <h3>Doanh Thu (Năm)</h3>
+                <div class="card-icon-wrapper"><i class="fa-solid fa-sack-dollar"></i></div>
+            </div>
+            <div class="card-body-zone">
+                <div id="totalRevenue" class="main-value">0 tr</div>
+            </div>
+        </div>
+        <div class="premium-card">
+            <div class="card-header-zone">
+                <h3>Lợi Nhuận (Năm)</h3>
+                <div class="card-icon-wrapper"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+            <div class="card-body-zone">
+                <div id="totalProfit" class="main-value">0 tr</div>
+            </div>
+        </div>
+        <div class="premium-card">
+            <div class="card-header-zone">
+                <h3>Tỷ Lệ LN Gộp (Năm)</h3>
+                <div class="card-icon-wrapper"><i class="fa-solid fa-percent"></i></div>
+            </div>
+            <div class="card-body-zone">
+                <div id="profitMargin" class="main-value">0%</div>
+                <div class="card-footer-progress">
+                    <div id="marginProgress" class="card-progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Dashboard Content -->
+    <main class="main-dashboard-content">
+        <div class="left-panels">
+
+            <div class="analytics-container">
+                <div class="container-title">
+                    <div>
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span class="title-text">Thống kê YCTG</span>
+                    </div>
+                </div>
+
+                <div class="kpi-box-grid">
+                    <div class="premium-card">
+                        <div class="card-header-zone">
+                            <h3>Số lượng YCTG (Năm / Quý)</h3>
+                            <div class="card-icon-wrapper"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        </div>
+                        <div class="card-body-zone">
+                            <div id="reportYCTGCombined" class="main-value">-</div>
+                        </div>
+                    </div>
+
+                    <div class="premium-card">
+                        <div class="card-header-zone">
+                            <h3>Tỷ lệ Thành Công (Quý)</h3>
+                            <div class="card-icon-wrapper"><i class="fa-solid fa-circle-check"></i></div>
+                        </div>
+                        <div class="card-body-zone">
+                            <div id="reportSuccessRate" class="main-value"
+                                style="font-size:1.65rem; white-space:nowrap;">-</div>
+                        </div>
+                    </div>
+
+                    <div class="premium-card">
+                        <div class="card-header-zone">
+                            <h3>KH (Có TG / Có ĐH / K.Có TG)</h3>
+                            <div class="card-icon-wrapper"><i class="fa-solid fa-users"></i></div>
+                        </div>
+                        <div class="card-body-zone">
+                            <div id="reportCustomerCounts" class="main-value"
+                                style="font-size:1.55rem; white-space:nowrap;">-</div>
+                        </div>
+                    </div>
+
+                    <div class="premium-card">
+                        <div class="card-header-zone">
+                            <h3>KH cập nhật thông tin (Tháng)</h3>
+                            <div class="card-icon-wrapper"><i class="fa-solid fa-user-pen"></i></div>
+                        </div>
+                        <div class="card-body-zone">
+                            <div id="reportUpdatedCustomers" class="main-value">-</div>
+                        </div>
+                    </div>
+
+                    <div class="premium-card">
+                        <div class="card-header-zone">
+                            <h3>Giá trị TB Đơn (Năm)</h3>
+                            <div class="card-icon-wrapper"><i class="fa-solid fa-calculator"></i></div>
+                        </div>
+                        <div class="card-body-zone">
+                            <div id="reportAvgOrderValue" class="main-value">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng KH không có YCTG -->
+            <div class="analytics-container">
+                <div class="container-title">
+                    <div>
+                        <i class="fa-solid fa-users-slash"></i>
+                        <span class="title-text">Các Khách Hàng năm nay Không Có YCTG </span>
+                    </div>
+                    <span class="badge-count" id="noYCTGCount">0 KH</span>
+                </div>
+                <div class="table-wrapper scrollable-table-wrapper">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 6%; text-align: center;">STT</th>
+                                <th style="width: 32%;">Tên Khách Hàng / Đối Tác</th>
+                                <th style="width: 20%;">Kinh Doanh Quản Lý</th>
+                                <th style="width: 18%;">Ngày ĐH Gần Nhất</th>
+                                <th style="width: 12%; text-align: center;">Ghi Chú</th>
+                                <th style="width: 12%; text-align: center;">Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="noYCTGTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Vui
+                                    lòng cập nhật dữ liệu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Khối thống kê đơn hàng tái bản -->
+            <div class="reprint-card" id="reprintCard">
+                <div class="reprint-header">
+                    <div class="reprint-title-wrap">
+                        <div class="reprint-title">
+                            <span>📦 Thống kê đơn hàng tái bản của từng khách hàng</span>
+                            <span class="reprint-badge-count" id="reprintTotalCountBadge">0 đơn</span>
+                        </div>
+                        <div class="reprint-subtitle" id="reprintSubtitle">
+                            Đang thống kê theo kỳ lọc và khách hàng hiện tại
+                        </div>
+                    </div>
+
+                    <div class="mode-switch-group">
+                        <button type="button" class="mode-pill-btn active" id="btnModeReOrder" data-mode="reorder"
+                            title="Chuỗi tái bản theo liên kết reOrderNumId">
+                            🔄 Theo số ĐH tái bản
+                        </button>
+                        <button type="button" class="mode-pill-btn" id="btnModeProductCode" data-mode="productcode"
+                            title="Nhóm theo các đơn có cùng mã hàng productCodes">
+                            🏷️ Theo mã hàng
+                        </button>
+                    </div>
+                </div>
+
+                <div class="reprint-toolbar">
+                    <div class="reprint-stats-summary" id="reprintStatsSummary">
+                        <div class="reprint-stat-pill">👥 Khách hàng: <b id="reprintCustCount">0</b></div>
+                        <div class="reprint-stat-pill">🔗 Bảng phân loại quy mô: <b id="reprintGroupCount">0</b></div>
+                        <div class="reprint-stat-pill">📋 Tổng đơn tái bản: <b id="reprintOrderCount">0</b></div>
+                    </div>
+                    <div class="reprint-search-box">
+                        <input type="text" id="reprintSearchInput" class="reprint-search-input"
+                            placeholder="🔍 Tìm Số ĐH, Số LSX, Tên SP, NVKD..." />
+                    </div>
+                </div>
+
+                <div id="reprintContentArea"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal cập nhật ghi chú -->
+    <div id="noteModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cập nhật Ghi Chú Khách Hàng</h2>
+                <button class="modal-close" onclick="closeNoteModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 12px;">
+                    <strong>Khách hàng:</strong> <span id="modalCustomerName"></span>
+                </div>
+                <div class="form-group">
+                    <label>Ghi Chú:</label>
+                    <textarea id="noteTextarea" placeholder="Nhập ghi chú cho khách hàng này..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal" onclick="closeNoteModal()">Hủy</button>
+                <button class="btn-modal primary" onclick="saveCustomerNote()">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal xác nhận xóa -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Xóa Khách Hàng</h2>
+                <button class="modal-close" onclick="closeDeleteModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="deleteWarning" class="alert-warning" style="display: none;">
+                    <strong><i class="fa-solid fa-exclamation-triangle"></i> Cảnh báo:</strong> Khách hàng này có <span
+                        id="budgetCount"></span> Tính giá liên kết. Bạn không thể xóa khách hàng này.
+                </div>
+                <div id="deleteConfirm" style="display: none;">
+                    <p style="margin-bottom: 12px;">Bạn có chắc chắn muốn xóa khách hàng này?</p>
+                    <strong>Khách hàng:</strong> <span id="deleteCustomerName"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal" onclick="closeDeleteModal()">Hủy</button>
+                <button id="deleteConfirmBtn" class="btn-modal danger" onclick="confirmDelete()"
+                    style="display: none;">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TOKEN = "{{$nToken}}";
+        const CURRENT_YEAR = 2026;
+        const API_BASE = 'https://ps.pserp.id.vn/api';
+
+        const YEAR_OPTIONS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
+
+        // DANH SÁCH KHÁCH HÀNG BỊ LOẠI TRỪ
+        const EXCLUDED_CUSTOMERS = [
+            "công ty cổ phần thực phẩm hữu nghị",
+            "anh hiển (in nhãn thức ăn chim)",
+            "công ty cổ phần tập đoàn masterise"
+        ];
+
+        function isExcludedCustomer(name) {
+            if (!name) return false;
+            const norm = String(name).toLowerCase().trim();
+            return EXCLUDED_CUSTOMERS.some(ex => norm.includes(ex) || ex.includes(norm));
+        }
+
+        let CUSTOMERS = []; let EMPLOYEES = [];
+        let CUSTOMER_MAP = new Map(); let EMPLOYEE_MAP = new Map();
+        let SELECTED_CUSTOMER_ID = "";
+        let RAW_BUDGETS_CACHE = [];
+
+        function formatVNCurrency(num) {
+            if (!num || num === 0) return "0 tr";
+            const absNum = Math.abs(num);
+            if (absNum >= 1000000000) return (num / 1000000000).toFixed(1).replace('.0', '') + " tỷ";
+            if (absNum >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + " tr";
+            return new Intl.NumberFormat('vi-VN').format(num);
+        }
+
+        function formatNumber(n) {
+            return Number(n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 });
+        }
+
+        function formatDate(date) {
+            if (!date) return "";
+            return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+        }
+
+        function isoToDmy(str) {
+            if (!str || str.length < 10) return str || '';
+            const [y, m, d] = str.slice(0, 10).split('-');
+            return `${d}-${m}-${y}`;
+        }
+
+        function setLoading(loading) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = loading ? 'flex' : 'none';
+        }
+
+        function parseSafeDate(dateStr) {
+            if (!dateStr) return null;
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        async function fetchLazyData(url) {
+            const response = await fetch(url, {
+                headers: { 'accept': 'application/json', 'Authorization': `Bearer ${TOKEN}`, 'X-Locale': 'en-US' }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            return Array.isArray(result.data) ? result.data : [];
+        }
+
+        async function enrichBudgetsWithOrderNum(budgets) {
+            const orderIds = [...new Set((budgets || [])
+                .map(item => item?.orderId)
+                .filter(id => id != null && String(id).trim() !== ''))];
+            if (orderIds.length === 0) return budgets || [];
+
+            const orderMap = new Map();
+            const chunkSize = 150;
+            for (let index = 0; index < orderIds.length; index += chunkSize) {
+                const ids = orderIds.slice(index, index + chunkSize);
+                const filter = encodeURIComponent(JSON.stringify({ id: { $in: ids } }));
+                const orders = await fetchLazyData(`${API_BASE}/order:list?pageSize=1000&filter=${filter}`);
+                orders.forEach(order => orderMap.set(String(order.id), order));
+            }
+
+            return (budgets || []).map(item => {
+                const order = orderMap.get(String(item?.orderId));
+                const resolvedOrderNum = order?.orderNum || item?.orderNum || '';
+                return resolvedOrderNum === item?.orderNum ? item : { ...item, orderNum: resolvedOrderNum };
+            });
+        }
+
+        async function enrichBudgetsWithOrderDetails(budgets) {
+            const estIds = [...new Set((budgets || [])
+                .map(item => item?.id)
+                .filter(id => id != null && String(id).trim() !== ''))];
+            if (estIds.length === 0) return budgets || [];
+
+            const productLots = [];
+            const chunkSize = 150;
+            for (let index = 0; index < estIds.length; index += chunkSize) {
+                const ids = estIds.slice(index, index + chunkSize);
+                const filter = encodeURIComponent(JSON.stringify({ estId: { $in: ids } }));
+                const rows = await fetchLazyData(`${API_BASE}/productLots:list?pageSize=20000&filter=${filter}`);
+                productLots.push(...rows);
+            }
+
+            const productIds = [...new Set(productLots
+                .map(lot => lot?.productId)
+                .filter(id => id != null && String(id).trim() !== ''))];
+            const orderDetailMap = new Map();
+            for (let index = 0; index < productIds.length; index += chunkSize) {
+                const ids = productIds.slice(index, index + chunkSize);
+                const filter = encodeURIComponent(JSON.stringify({ id: { $in: ids } }));
+                const rows = await fetchLazyData(`${API_BASE}/orderDetail:list?pageSize=20000&filter=${filter}`);
+                rows.forEach(detail => orderDetailMap.set(String(detail.id), detail));
+            }
+
+            const linksByEstId = new Map();
+            productLots.forEach(lot => {
+                const detail = orderDetailMap.get(String(lot.productId));
+                if (!detail) return;
+                const estId = String(lot.estId);
+                if (!linksByEstId.has(estId)) linksByEstId.set(estId, []);
+                linksByEstId.get(estId).push({ detail, lot });
+            });
+
+            return (budgets || []).map(item => ({
+                ...item,
+                orderDetailLinks: linksByEstId.get(String(item.id)) || []
+            }));
+        }
+
+        function populateYearFilter() {
+            const yearSelect = document.getElementById('f-year');
+            if (yearSelect) {
+                yearSelect.innerHTML = '<option value="">Tất cả năm</option>' + YEAR_OPTIONS.map(year => `<option value="${year}">${year}</option>`).join('');
+                yearSelect.value = "2026";
+            }
+        }
+
+        function populateEmployeeFilter() {
+            const select = document.getElementById('f-emp');
+            if (!select) return;
+            const activeEmployeeIds = new Set(CUSTOMERS.map(c => c.saleEmployeeId).filter(id => id != null));
+            const filtered = EMPLOYEES.filter(emp => emp.status === 'Đang làm' && activeEmployeeIds.has(emp.id));
+            select.innerHTML = '<option value="">Tất cả NVKD</option>' + filtered.map(emp => `<option value="${emp.id}">${emp.fullName}</option>`).join('');
+        }
+
+        function setupAutoRefreshEvents() {
+            document.getElementById('f-year')?.addEventListener('change', refreshData);
+        }
+
+        function renderCustomerDropdown() {
+            const optionsContainer = document.getElementById('custOptions');
+            const empId = document.getElementById('f-emp').value;
+            const searchValue = document.getElementById('custSearchInput').value.toLowerCase().trim();
+            if (!optionsContainer) return;
+
+            let filtered = empId ? CUSTOMERS.filter(c => String(c.saleEmployeeId) === empId) : CUSTOMERS;
+
+            if (searchValue) {
+                filtered = filtered.filter(c => (c.customerName || c.fullName || '').toLowerCase().includes(searchValue));
+            } else {
+                filtered = filtered.slice(0, 100);
+            }
+
+            let html = `<div class="dropdown-item ${SELECTED_CUSTOMER_ID === "" ? "selected" : ""}" data-id="">Tất cả khách hàng</div>`;
+            filtered.forEach(c => {
+                const displayName = c.customerName || c.fullName || `KH-${c.id}`;
+                html += `<div class="dropdown-item ${String(c.id) === String(SELECTED_CUSTOMER_ID) ? "selected" : ""}" data-id="${c.id}">${displayName}</div>`;
+            });
+            optionsContainer.innerHTML = html;
+
+            document.querySelectorAll('#custOptions .dropdown-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const targetItem = e.target.closest('.dropdown-item');
+                    if (!targetItem) return;
+                    SELECTED_CUSTOMER_ID = targetItem.getAttribute('data-id');
+                    document.getElementById('custTrigger').innerHTML = `<span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:90%;">${targetItem.innerText}</span> <i class="fa-solid fa-chevron-down"></i>`;
+                    document.getElementById('custMenu').style.display = 'none';
+                    refreshData();
+                });
+            });
+        }
+
+        function setupSearchableDropdownEvents() {
+            const trigger = document.getElementById('custTrigger');
+            const menu = document.getElementById('custMenu');
+            const searchInput = document.getElementById('custSearchInput');
+
+            trigger?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpened = menu.style.display === 'block';
+                menu.style.display = isOpened ? 'none' : 'block';
+                if (!isOpened) { searchInput.value = ''; renderCustomerDropdown(); searchInput.focus(); }
+            });
+
+            searchInput?.addEventListener('input', renderCustomerDropdown);
+
+            document.addEventListener('click', (e) => {
+                if (!document.getElementById('custDropdown').contains(e.target)) { if (menu) menu.style.display = 'none'; }
+            });
+        }
+
+        function getActiveCustomerIds() {
+            const empId = document.getElementById('f-emp')?.value;
+            if (SELECTED_CUSTOMER_ID) return new Set([Number(SELECTED_CUSTOMER_ID)]);
+            if (empId) return new Set(CUSTOMERS.filter(c => String(c.saleEmployeeId) === empId).map(c => c.id));
+            return new Set(CUSTOMERS.map(c => c.id));
+        }
+
+        function calculateAndDisplay(data) {
+            const activeCustomerIds = getActiveCustomerIds();
+            const empId = document.getElementById('f-emp').value;
+            const selectedYear = Number(document.getElementById('f-year').value) || CURRENT_YEAR;
+
+            const currentRealDate = new Date();
+            const selectedQuarter = Math.floor(currentRealDate.getMonth() / 3) + 1;
+            const currentRealMonth = currentRealDate.getMonth();
+
+            const stats = {
+                totalYCTG: 0, quarterYCTG: 0, successQuarter: 0,
+                revenueYear: 0, profitYear: 0, totalOrdersYear: 0, yearRevenueAll: 0
+            };
+
+            const activePeriodCustomerIds = new Set();
+            const periodCustomerIds = new Set();
+            const periodSuccessCustomerIds = new Set();
+            const customerLatestOrderMap = new Map();
+
+            data.forEach(item => {
+                if (empId) {
+                    const currentCust = CUSTOMER_MAP.get(item.customerId);
+                    if (!currentCust || String(currentCust.saleEmployeeId) !== String(empId)) return;
+                } else if (activeCustomerIds.size > 0 && !activeCustomerIds.has(item.customerId)) {
+                    return;
+                }
+
+                const date = parseSafeDate(item.receivedDay || item.createdAt);
+                if (!date) return;
+
+                const itemYear = date.getFullYear();
+                const itemMonth = date.getMonth();
+                const itemQuarter = Math.floor(itemMonth / 3) + 1;
+                const isSuccess = item.statusId >= 40 && item.statusId < 90;
+
+                if (isSuccess) {
+                    const currentLatest = customerLatestOrderMap.get(item.customerId);
+                    if (!currentLatest || date > currentLatest) {
+                        customerLatestOrderMap.set(item.customerId, date);
+                    }
+                }
+
+                if (itemYear === selectedYear) {
+                    activePeriodCustomerIds.add(item.customerId);
+                    periodCustomerIds.add(item.customerId);
+                    if (isSuccess) {
+                        periodSuccessCustomerIds.add(item.customerId);
+                    }
+                }
+
+                if (itemYear === selectedYear) {
+                    stats.totalYCTG++;
+                    if (isSuccess) {
+                        stats.revenueYear += Number(item.orderTotalValue || 0);
+                        stats.profitYear += Number(item.totalProfit || 0);
+                        stats.totalOrdersYear++;
+                        stats.yearRevenueAll += Number(item.orderTotalValue || 0);
+                    }
+                }
+
+                if (itemYear === selectedYear && itemQuarter === selectedQuarter) {
+                    stats.quarterYCTG++;
+                    if (isSuccess) stats.successQuarter++;
+                }
+            });
+
+            let poolCustomers = empId ? CUSTOMERS.filter(c => String(c.saleEmployeeId) === empId) : CUSTOMERS;
+            let noYCTGCustomers = poolCustomers.filter(c => !activePeriodCustomerIds.has(c.id));
+
+            let updatedCustomersCount = 0;
+            poolCustomers.forEach(c => {
+                const updateDate = parseSafeDate(c.updatedAt || c.updated_at);
+                if (updateDate && updateDate.getFullYear() === selectedYear && updateDate.getMonth() === currentRealMonth) {
+                    updatedCustomersCount++;
+                }
+            });
+
+            const noYCTGBody = document.getElementById('noYCTGTableBody');
+            document.getElementById('noYCTGCount').innerText = `${noYCTGCustomers.length} KH`;
+
+            if (noYCTGCustomers.length === 0) {
+                noYCTGBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Tất cả khách hàng đều có YCTG trong kỳ này!</td></tr>`;
+            } else {
+                noYCTGBody.innerHTML = noYCTGCustomers.map((c, index) => {
+                    const custName = c.customerName || c.fullName || `Khách hàng #${c.id}`;
+                    const saleName = EMPLOYEE_MAP.get(c.saleEmployeeId) || '<span style="color:var(--danger); font-weight:500;">Chưa gán NVKD</span>';
+                    const latestOrderDate = customerLatestOrderMap.get(c.id);
+                    let dateDisplay = '<span style="color:var(--text-muted);">Chưa có ĐH</span>';
+                    let badgeHtml = '';
+
+                    if (latestOrderDate) {
+                        dateDisplay = formatDate(latestOrderDate);
+                        if (latestOrderDate.getFullYear() !== selectedYear) {
+                            badgeHtml = `<br><span class="status-badge out-scope"><i class="fa-solid fa-circle-xmark"></i> Ngoài kỳ</span>`;
+                        } else {
+                            badgeHtml = `<br><span class="status-badge in-scope"><i class="fa-solid fa-circle-check"></i> Trong kỳ</span>`;
+                        }
+                    }
+
+                    const noteText = (c.note || c.notes || '').substring(0, 50);
+                    const noteDisplay = noteText ? `<span title="${c.note || c.notes}">${noteText}...</span>` : '<span style="color:var(--text-muted);">—</span>';
+
+                    return `
+                        <tr>
+                            <td style="text-align: center; color: var(--text-muted);">${index + 1}</td>
+                            <td>${custName}</td>
+                            <td>${saleName}</td>
+                            <td>${dateDisplay}${badgeHtml}</td>
+                            <td style="text-align: center; font-size: 0.85rem;">${noteDisplay}</td>
+                            <td style="text-align: center;">
+                                <div class="action-buttons">
+                                    <button class="btn-icon" onclick="openNoteModal(${c.id}, '${custName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-note-sticky"></i></button>
+                                    <button class="btn-icon danger" onclick="deleteCustomerWithCheck(${c.id}, '${custName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash-alt"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const successRate = (stats.quarterYCTG > 0) ? ((stats.successQuarter / stats.quarterYCTG) * 100).toFixed(1) + "%" : "0%";
+            const margin = stats.revenueYear > 0 ? ((stats.profitYear / stats.revenueYear) * 100).toFixed(1) : "0";
+
+            document.getElementById('totalRevenue').innerText = formatVNCurrency(stats.revenueYear);
+            document.getElementById('totalProfit').innerText = formatVNCurrency(stats.profitYear);
+            document.getElementById('profitMargin').innerText = margin + "%";
+            const progress = document.getElementById('marginProgress');
+            if (progress) progress.style.width = Math.min(parseFloat(margin), 100) + "%";
+
+            document.getElementById('reportYCTGCombined').innerHTML = `${stats.totalYCTG} <span class="divider-span">/</span> ${stats.quarterYCTG}`;
+            document.getElementById('reportSuccessRate').innerText = `${successRate} (Q${selectedQuarter})`;
+
+            const noYCTGValue = Math.max(poolCustomers.length - periodCustomerIds.size, 0);
+            document.getElementById('reportCustomerCounts').innerHTML = `${periodCustomerIds.size} <span class="divider-span">/</span> ${periodSuccessCustomerIds.size} <span class="divider-span">/</span> <span class="highlight-danger">${noYCTGValue}</span>`;
+
+            document.getElementById('reportUpdatedCustomers').innerText = `${updatedCustomersCount} KH`;
+            document.getElementById('reportAvgOrderValue').innerText = stats.totalOrdersYear > 0 ? formatVNCurrency(stats.yearRevenueAll / stats.totalOrdersYear) : "0 tr";
+
+            triggerReprintRender();
+        }
+
+        async function loadMasterData() {
+            setLoading(true);
+            try {
+                const customerFilter = { is_deleted: { $ne: true } };
+                const [customers, employees] = await Promise.all([
+                    fetchLazyData(`${API_BASE}/customer:list?pageSize=5000&filter=${encodeURIComponent(JSON.stringify(customerFilter))}`),
+                    fetchLazyData(`${API_BASE}/employees:list?pageSize=1000`)
+                ]);
+                CUSTOMERS = customers.filter(c => c.is_deleted !== true && c.is_deleted !== 'true');
+                EMPLOYEES = employees;
+                CUSTOMER_MAP = new Map(CUSTOMERS.map(c => [c.id, c]));
+                EMPLOYEE_MAP = new Map(employees.map(e => [e.id, (e.fullName || '').trim()]));
+
+                populateEmployeeFilter(); populateYearFilter();
+                renderCustomerDropdown(); setupSearchableDropdownEvents();
+                setupAutoRefreshEvents();
+                initReprintEvents();
+            } catch (e) {
+                console.error("Lỗi danh mục Master:", e);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function refreshData() {
+            setLoading(true);
+            try {
+                const selectedYear = document.getElementById('f-year').value || CURRENT_YEAR;
+                const serverFilter = {
+                    createdAt: {
+                        $gte: `${selectedYear}-01-01T00:00:00.000Z`,
+                        $lte: `${selectedYear}-12-31T23:59:59.999Z`
+                    }
+                };
+                const budgets = await fetchLazyData(`${API_BASE}/estimateBudgets:list?pageSize=20000&filter=${encodeURIComponent(JSON.stringify(serverFilter))}`);
+                const activeBudgets = budgets.filter(item => item?.isDeleted !== true && item?.isDeleted !== 'true');
+                const budgetsWithOrderNum = await enrichBudgetsWithOrderNum(activeBudgets);
+                const resolvedBudgets = await enrichBudgetsWithOrderDetails(budgetsWithOrderNum);
+                RAW_BUDGETS_CACHE = resolvedBudgets;
+                calculateAndDisplay(resolvedBudgets);
+            } catch (error) {
+                console.error("Lỗi tải dữ liệu nghiệp vụ:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadMasterData(); await refreshData();
+            document.getElementById('f-emp')?.addEventListener('change', () => {
+                SELECTED_CUSTOMER_ID = "";
+                document.getElementById('custTrigger').innerHTML = `Tất cả khách hàng <i class="fa-solid fa-chevron-down"></i>`;
+                renderCustomerDropdown(); refreshData();
+            });
+        });
+
+        // ===== MODAL ACTIONS =====
+        let currentModalCustomerId = null;
+        let currentModalCustomerData = null;
+
+        function openNoteModal(customerId, customerName) {
+            currentModalCustomerId = customerId;
+            const customer = CUSTOMER_MAP.get(customerId);
+            currentModalCustomerData = customer;
+
+            document.getElementById('modalCustomerName').innerText = customerName;
+            document.getElementById('noteTextarea').value = (customer?.note || customer?.notes || '').trim();
+            document.getElementById('noteModal').classList.add('active');
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').classList.remove('active');
+            currentModalCustomerId = null;
+            currentModalCustomerData = null;
+        }
+
+        async function saveCustomerNote() {
+            if (!currentModalCustomerId) return;
+            const noteText = document.getElementById('noteTextarea').value.trim();
+            setLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/customer:update/${currentModalCustomerId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}`, 'X-Locale': 'en-US' },
+                    body: JSON.stringify({ note: noteText })
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const customer = CUSTOMER_MAP.get(currentModalCustomerId);
+                if (customer) { customer.note = noteText; customer.notes = noteText; }
+                closeNoteModal(); refreshData();
+                alert('Đã cập nhật ghi chú thành công!');
+            } catch (error) {
+                console.error('Lỗi khi cập nhật ghi chú:', error);
+                alert('Lỗi khi cập nhật ghi chú: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function deleteCustomerWithCheck(customerId, customerName) {
+            document.getElementById('deleteCustomerName').innerText = customerName;
+            const deleteWarning = document.getElementById('deleteWarning');
+            const deleteConfirm = document.getElementById('deleteConfirm');
+            const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+            deleteWarning.style.display = 'none';
+            deleteConfirm.style.display = 'block';
+            deleteConfirmBtn.style.display = 'block';
+            currentModalCustomerId = customerId;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            currentModalCustomerId = null;
+        }
+
+        async function confirmDelete() {
+            if (!currentModalCustomerId) return;
+            setLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/customer:update/${currentModalCustomerId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}`, 'X-Locale': 'en-US' },
+                    body: JSON.stringify({ is_deleted: true })
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const index = CUSTOMERS.findIndex(c => c.id === currentModalCustomerId);
+                if (index > -1) { CUSTOMERS.splice(index, 1); CUSTOMER_MAP.delete(currentModalCustomerId); }
+                closeDeleteModal(); refreshData();
+                alert('Đã xóa khách hàng thành công!');
+            } catch (error) {
+                console.error('Lỗi khi xóa khách hàng:', error);
+                alert('Lỗi khi xóa khách hàng: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const noteModal = document.getElementById('noteModal');
+            const deleteModal = document.getElementById('deleteModal');
+            if (e.target === noteModal) closeNoteModal();
+            if (e.target === deleteModal) closeDeleteModal();
+        });
+
+        /* ═══════════════════════════════════════════════════════
+           XỬ LÝ CHUẨN XÁC ĐƠN HÀNG TÁI BẢN VÀ GOM THEO ĐỘ DÀI
+        ═══════════════════════════════════════════════════════ */
+        let reprintViewMode = 'reorder';
+        let reprintSearchQuery = '';
+
+        function isEligibleBudget(b) {
+            if (!b) return false;
+            if (b.isDeleted === true || b.isDeleted === 'true') return false;
+            const status = Number(b.statusId || 0);
+            return status >= 40 && status < 90;
+        }
+
+        function isValidOrder(b) {
+            if (!isEligibleBudget(b)) return false;
+            const hasOrderNum = b.orderNum && String(b.orderNum).trim() !== '' && String(b.orderNum).trim() !== '—';
+            const hasLSX = b.productivityNum && String(b.productivityNum).trim() !== '' && String(b.productivityNum).trim() !== '—';
+            if (!hasOrderNum && !hasLSX) return false;
+            return true;
+        }
+
+        function hasReOrderRef(b) {
+            if (b?.reOrderNumId == null) return false;
+            const refId = Number(String(b.reOrderNumId).trim());
+            const isReprintOrderType = String(b.orderType ?? '').includes('ĐH tái bản');
+            return Number.isInteger(refId) && refId > 0 && isReprintOrderType;
+        }
+
+        function getProductCodes(b) {
+            if (!b) return [];
+            const raw = b.productCodes ?? b.productCode ?? b.product_codes ?? b.product_code ?? '';
+            if (Array.isArray(raw)) {
+                return raw.map(x => (typeof x === 'object' && x !== null) ? String(x.productCode || x.code || x.product_code || x.name || '').trim() : String(x || '').trim()).filter(Boolean);
+            }
+            if (typeof raw === 'object' && raw !== null) {
+                const val = String(raw.productCode || raw.code || raw.product_code || raw.name || '').trim();
+                return val ? [val] : [];
+            }
+            if (typeof raw === 'string' && raw.trim()) {
+                return raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+            }
+            return [];
+        }
+
+        // Chuẩn hóa tên sản phẩm: Loại bỏ mã tiền tố phân loại, số thứ tự, ký tự đặc biệt
+        function cleanProductName(s) {
+            if (!s) return '';
+            return String(s)
+                .toLowerCase()
+                .replace(/^dh\d+\s*[\-\:]*\s*/i, '')  // Bỏ tiền tố mã DH gắn trước tên nếu có
+                .replace(/^rj-\(\d+\)[^:]*:\s*/i, '') // Bỏ tiền tố RJ-(15)...
+                .replace(/^\d+[\.\s\-]+/, '')        // Bỏ số thứ tự đầu
+                .replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        // BẮT BUỘC TÊN SẢN PHẨM PHẢI TRÙNG NHAU (EXACT HOẶC TRÙNG TỪ KHÓA CỐT LÕI)
+        function isProductMatch(prodA, specA, prodB, specB) {
+            const pA = cleanProductName(prodA);
+            const pB = cleanProductName(prodB);
+            if (!pA || !pB) return false;
+            if (pA === pB) return true;
+
+            // Nếu 1 bên là 'nước rửa bát' mà 1 bên là 'lau sàn' -> KHÁC NHAU
+            const wordsA = pA.split(/\s+/).filter(w => w.length >= 2);
+            const wordsB = pB.split(/\s+/).filter(w => w.length >= 2);
+
+            // Bắt buộc tỷ lệ trùng từ phải trên 80% đối với tên sản phẩm
+            const common = wordsA.filter(w => wordsB.includes(w));
+            const ratio = common.length / Math.max(wordsA.length, wordsB.length);
+            return ratio >= 0.8;
+        }
+
+        function groupChainsBySize(rawChains, modeName) {
+            const sizeMap = new Map();
+
+            rawChains.forEach(ch => {
+                const size = ch.members.length;
+                if (!sizeMap.has(size)) sizeMap.set(size, []);
+                sizeMap.get(size).push(ch);
+            });
+
+            const mergedBlocks = [];
+            const sortedSizes = Array.from(sizeMap.keys()).sort((a, b) => b - a);
+
+            sortedSizes.forEach(size => {
+                const chains = sizeMap.get(size);
+                chains.sort((a, b) => (b.latestDate || '').localeCompare(a.latestDate || ''));
+
+                const allMergedMembers = [];
+                let totalActive = 0;
+                let maxDate = '';
+
+                chains.forEach((c) => {
+                    totalActive += c.activeOrders;
+                    if (!maxDate || (c.latestDate || '') > maxDate) maxDate = c.latestDate || '';
+                    c.members.forEach((m, mIdx) => {
+                        const isLastInChain = (mIdx === c.members.length - 1);
+                        allMergedMembers.push({
+                            ...m,
+                            targetAnchorId: m.targetAnchorId,
+                            isChainBoundary: isLastInChain
+                        });
+                    });
+                });
+
+                let title = '';
+                if (chains.length === 1) {
+                    title = chains[0].title;
+                } else if (modeName === 'reorder') {
+                    title = `Chuỗi có ${size} đơn tái bản — [${chains.length} nhóm]`;
+                } else {
+                    title = `Mã hàng có ${size} đơn — [${chains.length} nhóm sản phẩm]`;
+                }
+
+                mergedBlocks.push({
+                    title: title,
+                    chainSize: size,
+                    chainCount: chains.length,
+                    latestDate: maxDate,
+                    members: allMergedMembers,
+                    totalOrders: allMergedMembers.length,
+                    activeOrders: totalActive,
+                    subChains: chains
+                });
+            });
+
+            return mergedBlocks;
+        }
+
+        function buildReprintChainsByReOrder(cBudgets, allYearBudgetsForCust) {
+            const validCurrent = cBudgets.filter(isValidOrder);
+            const validAllYear = (allYearBudgetsForCust || []).filter(isValidOrder);
+
+            const poolIdSet = new Set(validCurrent.map(b => b.id));
+            const combinedPool = [...validCurrent];
+            validAllYear.forEach(b => {
+                if (b && !poolIdSet.has(b.id)) {
+                    combinedPool.push(b);
+                    poolIdSet.add(b.id);
+                }
+            });
+
+            const budgetById = new Map();
+            const byOrderId = {};
+
+            combinedPool.forEach(b => {
+                budgetById.set(String(b.id), b);
+                if (b.orderId) {
+                    const oKey = String(b.orderId).trim();
+                    if (!byOrderId[oKey]) byOrderId[oKey] = [];
+                    byOrderId[oKey].push(b);
+                }
+            });
+
+            function findParent(child) {
+                if (!hasReOrderRef(child)) return null;
+                const rStr = String(child.reOrderNumId).trim();
+                const childId = String(child.id);
+
+                // reOrderNumId là khóa ngoại tới orderId của đơn cha. Không dò sang
+                // estimateBudget.id/orderNum vì các miền ID có thể trùng và ghép sai cây.
+                return (byOrderId[rStr] || []).find(parent => String(parent.id) !== childId) || null;
+            }
+
+            class ChainDSU {
+                constructor() { this.p = new Map(); }
+                find(x) {
+                    if (!this.p.has(x)) this.p.set(x, x);
+                    if (this.p.get(x) === x) return x;
+                    this.p.set(x, this.find(this.p.get(x)));
+                    return this.p.get(x);
+                }
+                union(x, y) {
+                    const rx = this.find(x);
+                    const ry = this.find(y);
+                    if (rx !== ry) this.p.set(rx, ry);
+                }
+            }
+
+            const dsu = new ChainDSU();
+            const reprintItems = combinedPool.filter(hasReOrderRef);
+            const parentChildLinks = new Map();
+            const childrenByParent = new Map();
+
+            reprintItems.forEach(child => {
+                const parent = findParent(child);
+                if (!parent) return;
+
+                const childId = String(child.id);
+                const parentId = String(parent.id);
+                parentChildLinks.set(childId, parent);
+                if (!childrenByParent.has(parentId)) childrenByParent.set(parentId, []);
+                childrenByParent.get(parentId).push(child);
+                dsu.union(childId, parentId);
+            });
+
+            const clusters = new Map();
+            parentChildLinks.forEach((parent, childId) => {
+                const child = budgetById.get(String(childId));
+                if (!child) return;
+                const rootGroup = dsu.find(childId);
+
+                if (!clusters.has(rootGroup)) clusters.set(rootGroup, new Map());
+                const grp = clusters.get(rootGroup);
+                grp.set(String(child.id), child);
+                grp.set(String(parent.id), parent);
+            });
+
+            const currentPeriodIdSet = new Set(validCurrent.map(b => String(b.id)));
+            const rawChainList = [];
+
+            clusters.forEach((membersMap) => {
+                const members = Array.from(membersMap.values());
+
+                // Chỉ thống kê nhóm có tái bản thật: ít nhất 1 đơn con có reOrderNumId khớp được cha.
+                const linkedReprintCount = members.filter(m => parentChildLinks.has(String(m.id))).length;
+                if (members.length < 2 || linkedReprintCount < 1) return;
+
+                const hasInPeriod = members.some(m => currentPeriodIdSet.has(String(m.id)));
+                if (!hasInPeriod) return;
+
+                const memberIdSet = new Set(members.map(m => String(m.id)));
+                const originNodes = members.filter(m => !parentChildLinks.has(String(m.id)));
+                originNodes.sort((a, b) => {
+                    const dateA = a.deliveryDate || a.receivedDay || a.actualDeliveryDate || a.createdAt || '';
+                    const dateB = b.deliveryDate || b.receivedDay || b.actualDeliveryDate || b.createdAt || '';
+                    return dateA.localeCompare(dateB) || (a.id - b.id);
+                });
+
+                const rootOrigin = originNodes[0] || members[0];
+                const chainAnchorId = `anchor-chain-${rootOrigin.id}`;
+                const enrichedMembers = [];
+                const visited = new Set();
+
+                function sortByOrderDate(a, b) {
+                    const dateA = a.deliveryDate || a.receivedDay || a.actualDeliveryDate || a.createdAt || '';
+                    const dateB = b.deliveryDate || b.receivedDay || b.actualDeliveryDate || b.createdAt || '';
+                    return dateA.localeCompare(dateB) || (a.id - b.id);
+                }
+
+                function appendNode(node, depth, directParent = null) {
+                    const nodeId = String(node?.id);
+                    if (!node || visited.has(nodeId) || !memberIdSet.has(nodeId)) return;
+                    visited.add(nodeId);
+                    const sourceOrderNum = directParent?.orderNum || (hasReOrderRef(node) ? `ĐH #${node.reOrderNumId}` : '');
+                    enrichedMembers.push({
+                        ...node,
+                        targetAnchorId: chainAnchorId,
+                        sourceOrderNum: depth === 0 ? '' : sourceOrderNum,
+                        roleLabel: depth === 0 ? 'Đơn gốc ban đầu' : `Tái bản${sourceOrderNum ? ` (từ ${sourceOrderNum})` : ''}`,
+                        roleClass: depth === 0 ? 'role-badge-origin' : 'role-badge-reorder',
+                        isCurrentPeriod: currentPeriodIdSet.has(nodeId)
+                    });
+                    const children = (childrenByParent.get(nodeId) || []).filter(child => memberIdSet.has(String(child.id)));
+                    children.sort(sortByOrderDate).forEach(child => appendNode(child, depth + 1, node));
+                }
+
+                const orderedRoots = originNodes.length ? originNodes : [rootOrigin];
+                orderedRoots.sort(sortByOrderDate).forEach(root => appendNode(root, 0));
+                members.filter(m => !visited.has(String(m.id))).sort(sortByOrderDate).forEach(m => {
+                    const directParent = parentChildLinks.get(String(m.id));
+                    appendNode(m, directParent ? 1 : 0, directParent);
+                });
+
+                // Đơn gốc chỉ dùng để nối cây. Thống kê/hiển thị chỉ các estimateBudget
+                // có reOrderNumId hợp lệ để không biến đơn thường thành đơn tái bản.
+                const reprintMembers = enrichedMembers.filter(hasReOrderRef);
+                if (reprintMembers.length < 3) return;
+
+                const newestItem = reprintMembers[reprintMembers.length - 1];
+                const latestDate = newestItem.deliveryDate || newestItem.receivedDay || newestItem.actualDeliveryDate || newestItem.createdAt || '';
+
+                rawChainList.push({
+                    title: `Chuỗi tái bản: ${rootOrigin.orderNum || rootOrigin.productivityNum} ➔ ${newestItem.orderNum || newestItem.productivityNum} (${reprintMembers.length} đơn tái bản)`,
+                    chainAnchorId: chainAnchorId,
+                    latestDate,
+                    members: reprintMembers,
+                    totalOrders: reprintMembers.length,
+                    activeOrders: reprintMembers.filter(m => m.isCurrentPeriod).length
+                });
+            });
+
+            return groupChainsBySize(rawChainList, 'reorder');
+        }
+
+        function buildReprintGroupsByProductCodes(cBudgets) {
+            const validBudgets = cBudgets.filter(isEligibleBudget);
+            const codeMap = new Map();
+
+            validBudgets.forEach(b => {
+                (b.orderDetailLinks || []).forEach(({ detail, lot }) => {
+                    const cleanCode = String(detail?.productCode ?? '').trim();
+                    if (!cleanCode) return;
+                    if (!codeMap.has(cleanCode)) codeMap.set(cleanCode, new Map());
+
+                    const estimatesById = codeMap.get(cleanCode);
+                    const estId = String(b.id);
+                    if (!estimatesById.has(estId)) {
+                        estimatesById.set(estId, {
+                            ...b,
+                            orderDetailId: detail.id,
+                            productCode: cleanCode,
+                            productCodes: [cleanCode],
+                            productName: detail.productName || b.productName,
+                            productivityType: detail.productivityType || lot?.productSpecifications || b.productivityType,
+                            productQty: lot?.orderQty ?? detail.quantity ?? b.productQty
+                        });
+                    }
+                });
+            });
+
+            const rawGroups = [];
+            codeMap.forEach((estimatesById, code) => {
+                const members = Array.from(estimatesById.values());
+                // Chỉ hiện mã hàng liên kết với ít nhất 3 estimateBudgets hợp lệ.
+                if (members.length < 3) return;
+
+                members.sort((a, b) => {
+                    const dateA = a.deliveryDate || a.receivedDay || a.actualDeliveryDate || a.createdAt || '';
+                    const dateB = b.deliveryDate || b.receivedDay || b.actualDeliveryDate || b.createdAt || '';
+                    return dateA.localeCompare(dateB) || (a.id - b.id);
+                });
+
+                const chainAnchorId = `anchor-code-${encodeURIComponent(code)}`;
+
+                const enrichedMembers = members.map((m) => {
+                    return {
+                        ...m,
+                        targetAnchorId: chainAnchorId,
+                        roleLabel: 'Đơn cùng mã hàng',
+                        roleClass: 'role-badge-origin',
+                        isCurrentPeriod: true
+                    };
+                });
+
+                const newestOrder = enrichedMembers[enrichedMembers.length - 1];
+                const latestDate = newestOrder.deliveryDate || newestOrder.receivedDay || newestOrder.actualDeliveryDate || newestOrder.createdAt || '';
+                const sampleProdName = newestOrder.productName || '';
+
+                rawGroups.push({
+                    title: `Mã hàng: ${code}${sampleProdName ? ` — ${sampleProdName.slice(0, 40)}` : ''}`,
+                    chainAnchorId: chainAnchorId,
+                    code: code,
+                    latestDate,
+                    members: enrichedMembers,
+                    totalOrders: enrichedMembers.length,
+                    activeOrders: enrichedMembers.length
+                });
+            });
+
+            return groupChainsBySize(rawGroups, 'productcode');
+        }
+
+        function formatShortDmy(d) {
+            if (!d) return '';
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const yr = String(d.getFullYear()).slice(-2);
+            return `${day}/${month}/${yr}`;
+        }
+
+        function analyzeCustomerMTS(groups) {
+            const proposals = [];
+            groups.forEach(group => {
+                const subChains = group.subChains || [group];
+
+                subChains.forEach(ch => {
+                    const members = ch.members;
+                    if (members.length < 2) return;
+
+                    const validDates = members
+                        .map(m => parseSafeDate(m.receivedDay || m.createdAt || m.deliveryDate))
+                        .filter(Boolean)
+                        .sort((a, b) => a - b);
+
+                    let avgDaysBetween = 0;
+                    if (validDates.length >= 2) {
+                        const totalDays = (validDates[validDates.length - 1] - validDates[0]) / (1000 * 60 * 60 * 24);
+                        avgDaysBetween = Math.round(totalDays / (validDates.length - 1));
+                    }
+
+                    const orderDateStrings = validDates.map(d => formatShortDmy(d)).join(', ');
+                    const totalQty = members.reduce((sum, m) => sum + Number(m.productQty || 0), 0);
+                    const avgQty = Math.round(totalQty / members.length);
+                    const suggestedQty = Math.ceil((avgQty * 1.2) / 1000) * 1000;
+
+                    const newest = members[members.length - 1];
+                    proposals.push({
+                        targetAnchorId: ch.chainAnchorId || members[0]?.targetAnchorId,
+                        productName: newest.productName || 'Sản phẩm tiêu chuẩn',
+                        productCode: getProductCodes(newest).join(', ') || newest.orderNum,
+                        spec: newest.productivityType || 'Theo mẫu chuẩn',
+                        frequencyText: `${members.length} đơn (~${avgDaysBetween > 0 ? avgDaysBetween : 25} ngày/đợt)`,
+                        orderDates: orderDateStrings,
+                        suggestedQty: suggestedQty
+                    });
+                });
+            });
+            return proposals;
+        }
+
+        function scrollToOrderChain(anchorId) {
+            if (!anchorId) return;
+            const targetEl = document.getElementById(anchorId);
+            if (!targetEl) return;
+
+            const parentBlock = targetEl.closest('.cust-reprint-block');
+            if (parentBlock && parentBlock.classList.contains('collapsed')) {
+                parentBlock.classList.remove('collapsed');
+            }
+
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetEl.classList.remove('target-pulse');
+            void targetEl.offsetWidth;
+            targetEl.classList.add('target-pulse');
+        }
+
+        function triggerReprintRender() {
+            const activeCustomerIds = getActiveCustomerIds();
+            const empId = document.getElementById('f-emp')?.value;
+            const selectedYear = document.getElementById('f-year')?.value || CURRENT_YEAR;
+
+            let filteredBudgets = RAW_BUDGETS_CACHE.filter(item => {
+                if (empId) {
+                    const currentCust = CUSTOMER_MAP.get(item.customerId);
+                    if (!currentCust || String(currentCust.saleEmployeeId) !== String(empId)) return false;
+                } else if (activeCustomerIds.size > 0 && !activeCustomerIds.has(item.customerId)) {
+                    return false;
+                }
+                return true;
+            });
+
+            const custMap = Object.fromEntries(CUSTOMERS.map(c => [c.id, c.customerName || c.fullName || '']));
+            const empMap = Object.fromEntries(EMPLOYEES.map(e => [e.id, e.fullName || e.name || `NV-${e.id}`]));
+
+            const budgetsByCust = {};
+            filteredBudgets.forEach(b => {
+                const cid = b.customerId ? String(b.customerId) : 'UNKNOWN';
+                if (!budgetsByCust[cid]) budgetsByCust[cid] = [];
+                budgetsByCust[cid].push(b);
+            });
+
+            const allYearByCust = {};
+            RAW_BUDGETS_CACHE.forEach(b => {
+                const cid = b.customerId ? String(b.customerId) : 'UNKNOWN';
+                if (!allYearByCust[cid]) allYearByCust[cid] = [];
+                allYearByCust[cid].push(b);
+            });
+
+            const customerBlocks = [];
+            let grandTotalOrders = 0;
+            let grandTotalGroups = 0;
+            let grandTotalCustomers = 0;
+
+            const searchKw = (reprintSearchQuery || '').trim().toLowerCase();
+
+            Object.entries(budgetsByCust).forEach(([cid, cBudgets]) => {
+                const cName = cid === 'UNKNOWN' ? 'Khách lẻ / Chưa phân loại' : (custMap[cid] || `Khách hàng #${cid}`);
+
+                // LỌC CHẶN 1: BỎ CÁC CÔNG TY TRONG DANH SÁCH LOẠI TRỪ
+                if (isExcludedCustomer(cName)) return;
+
+                let groups = (reprintViewMode === 'reorder')
+                    ? buildReprintChainsByReOrder(cBudgets, allYearByCust[cid])
+                    : buildReprintGroupsByProductCodes(cBudgets);
+
+                if (groups.length === 0) return;
+
+                if (searchKw) {
+                    groups = groups.map(g => {
+                        const matchedMembers = g.members.filter(m => {
+                            const orderNum = (m.orderNum || '').toLowerCase();
+                            const lsx = (m.productivityNum || '').toLowerCase();
+                            const prodName = (m.productName || '').toLowerCase();
+                            const spec = (m.productivityType || '').toLowerCase();
+                            const emp = (empMap[m.saleEmployeeId] || '').toLowerCase();
+                            const codes = getProductCodes(m).join(' ').toLowerCase();
+                            return orderNum.includes(searchKw) || lsx.includes(searchKw) || prodName.includes(searchKw) || spec.includes(searchKw) || emp.includes(searchKw) || codes.includes(searchKw);
+                        });
+                        return { ...g, members: matchedMembers };
+                    }).filter(g => g.members.length > 0);
+                }
+
+                if (groups.length === 0) return;
+
+                // LỌC CHẶN 2: BẮT BUỘC KHÁCH HÀNG PHẢI CÓ ÍT NHẤT 1 ĐƠN TÁI BẢN
+                let reorderOnlyCount = 0;
+                let custOrderCount = 0;
+
+                groups.forEach(g => {
+                    custOrderCount += g.members.length;
+                    g.members.forEach(m => {
+                        if (hasReOrderRef(m)) {
+                            reorderOnlyCount++;
+                        }
+                    });
+                });
+
+                if (reprintViewMode === 'reorder' && reorderOnlyCount < 1) return;
+
+                grandTotalOrders += custOrderCount;
+                grandTotalGroups += groups.length;
+                grandTotalCustomers++;
+
+                customerBlocks.push({
+                    customerId: cid,
+                    customerName: cName,
+                    groups: groups,
+                    totalOrders: custOrderCount
+                });
+            });
+
+            customerBlocks.sort((a, b) => {
+                const dateA = a.groups[0]?.latestDate || '';
+                const dateB = b.groups[0]?.latestDate || '';
+                return dateB.localeCompare(dateA) || (b.totalOrders - a.totalOrders);
+            });
+
+            document.getElementById('reprintTotalCountBadge').textContent = `${grandTotalOrders} đơn`;
+            document.getElementById('reprintCustCount').textContent = `${grandTotalCustomers}`;
+            document.getElementById('reprintGroupCount').textContent = `${grandTotalGroups}`;
+            document.getElementById('reprintOrderCount').textContent = `${grandTotalOrders}`;
+
+            const subtitleEl = document.getElementById('reprintSubtitle');
+            if (subtitleEl) {
+                const modeText = reprintViewMode === 'reorder' ? 'Chuỗi liên kết ĐH tái bản (A ➔ B ➔ C)' : 'Nhóm theo orderDetail.productCode';
+                const modeCondition = reprintViewMode === 'reorder'
+                    ? 'có từ 3 estimateBudgets tái bản hợp lệ trở lên'
+                    : 'orderDetail.productCode liên kết từ 3 estimateBudgets trở lên qua productLots';
+                const custNameSelected = SELECTED_CUSTOMER_ID ? ` • KH: ${custMap[SELECTED_CUSTOMER_ID] || SELECTED_CUSTOMER_ID}` : '';
+                subtitleEl.textContent = `Chế độ: ${modeText} | Kỳ: Năm ${selectedYear}${custNameSelected} | Chỉ tính statusId từ 40 đến dưới 90 và ${modeCondition}`;
+            }
+
+            const container = document.getElementById('reprintContentArea');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (customerBlocks.length === 0) {
+                const emptyTitle = reprintViewMode === 'reorder'
+                    ? 'Không tìm thấy chuỗi tái bản phù hợp.'
+                    : 'Không tìm thấy mã hàng nào có từ 3 estimateBudgets trở lên.';
+                const emptyReason = reprintViewMode === 'reorder'
+                    ? 'Các nhóm có dưới 3 estimateBudgets tái bản hoặc không đủ điều kiện đã được lọc bỏ.'
+                    : 'Các đơn ngoài statusId 40-89 hoặc mã hàng có dưới 3 estimateBudgets đã được lọc bỏ.';
+                container.innerHTML = `
+                    <div class="reprint-empty">
+                        <div style="font-size: 28px; margin-bottom: 8px;">📭</div>
+                        <b>${emptyTitle}</b>
+                        <div style="margin-top: 4px; color: #94a3b8;">
+                            ${searchKw ? 'Thử xóa từ khóa tìm kiếm hoặc kiểm tra lại bộ lọc.' : emptyReason}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const frag = document.createDocumentFragment();
+
+            customerBlocks.forEach((cBlock) => {
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'cust-reprint-block collapsed';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'cust-reprint-header';
+                headerDiv.innerHTML = `
+                    <div class="cust-reprint-title">
+                        <span>🏢</span>
+                        <span>${cBlock.customerName}</span>
+                    </div>
+                    <div class="cust-reprint-meta">
+                        <span class="chain-badge" style="background:#e0f2fe; color:#0369a1;">${cBlock.totalOrders} đơn</span>
+                        <span class="chain-badge">${cBlock.groups.length} bảng quy mô</span>
+                        <span class="cust-toggle-icon">▼</span>
+                    </div>
+                `;
+
+                const bodyDiv = document.createElement('div');
+                bodyDiv.className = 'cust-reprint-body';
+
+                // ── 1. ĐƯA KHỐI ĐỀ XUẤT MAKE-TO-STOCK LÊN ĐẦU TIÊN ──
+                const custProposals = analyzeCustomerMTS(cBlock.groups);
+                if (custProposals.length > 0) {
+                    const mtsBox = document.createElement('div');
+                    mtsBox.className = 'cust-mts-box';
+
+                    let mtsRowsHtml = custProposals.map((p, pIdx) => `
+                        <tr>
+                            <td style="text-align: center; width: 35px; color: #94a3b8;">${pIdx + 1}</td>
+                            <td style="width: 32%;">
+                                <a class="mts-jump-link" onclick="scrollToOrderChain('${p.targetAnchorId}')" title="Bấm để nhảy đến chuỗi đơn hàng này">
+                                    ${p.productName} <i class="fa-solid fa-arrow-down-long" style="font-size: 0.75rem;"></i>
+                                </a>
+                                ${p.productCode ? `<div style="font-size:0.75rem; color:#64748b; font-family:monospace;">Mã: ${p.productCode}</div>` : ''}
+                            </td>
+                            <td style="width: 20%;"><span class="status-badge in-scope">${p.frequencyText}</span></td>
+                            <td style="font-size: 0.85rem; color: #1e293b; font-weight: 500;">${p.orderDates}</td>
+                            <td style="text-align: right; font-weight: 800; color: #2563eb; width: 14%; font-size: 0.95rem;">${formatNumber(p.suggestedQty)}</td>
+                        </tr>
+                    `).join('');
+
+                    mtsBox.innerHTML = `
+                        <div class="cust-mts-header">
+                            <div class="cust-mts-title">
+                                <i class="fa-solid fa-lightbulb"></i> Đề xuất sản xuất tồn kho (Make-to-Stock) cho ${cBlock.customerName}
+                            </div>
+                            <span class="chain-badge" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">
+                                ${custProposals.length} mã hàng tiềm năng
+                            </span>
+                        </div>
+                        <table class="cust-mts-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center;">STT</th>
+                                    <th>Mã hàng / Sản phẩm</th>
+                                    <th>Tần suất & Chu kỳ</th>
+                                    <th>Những ngày đã đặt hàng</th>
+                                    <th style="text-align: right;">SL Đề Xuất</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mtsRowsHtml}
+                            </tbody>
+                        </table>
+                    `;
+                    bodyDiv.appendChild(mtsBox);
+                }
+
+                // ── 2. RENDER CÁC BẢNG CHI TIẾT ĐƠN HÀNG ──
+                cBlock.groups.forEach((group) => {
+                    const chainDiv = document.createElement('div');
+                    chainDiv.className = 'chain-block';
+
+                    const groupTitleHtml = `
+                        <div class="chain-header">
+                            <div class="chain-title">
+                                <span>${reprintViewMode === 'reorder' ? '🔗' : '🏷️'}</span>
+                                <span>${group.title}</span>
+                            </div>
+                            <span class="chain-badge">${group.members.length} đơn</span>
+                        </div>
+                    `;
+
+                    let rowsHtml = '';
+                    group.members.forEach((item, rIdx) => {
+                        const orderNum = item.orderNum ? `<span class="code-pill">${item.orderNum}</span>` : '—';
+                        const lsx = item.productivityNum ? `<span class="lsx-pill">${item.productivityNum}</span>` : '—';
+                        const prodName = item.productName || '—';
+                        const spec = item.productivityType ? `<div class="product-spec-text" title="${item.productivityType}">${item.productivityType}</div>` : '—';
+                        const nvkd = item.saleEmployeeId ? `<span class="nvkd-pill">${empMap[item.saleEmployeeId] || `NV-${item.saleEmployeeId}`}</span>` : '—';
+                        const role = `<span class="${item.roleClass || 'role-badge-origin'}">${item.roleLabel || 'Đơn hàng'}</span>`;
+                        const delDate = isoToDmy(item.deliveryDate || item.receivedDay || '');
+                        const qty = formatNumber(item.productQty || 0);
+
+                        const rowClass = (item.isChainBoundary && rIdx < group.members.length - 1) ? 'chain-boundary-row' : '';
+                        const rowIdAttr = item.targetAnchorId ? `id="${item.targetAnchorId}"` : '';
+
+                        rowsHtml += `
+                            <tr class="${rowClass}" ${rowIdAttr}>
+                                <td style="text-align: center; width: 40px; color: #94a3b8;">${rIdx + 1}</td>
+                                <td style="width: 110px;">${orderNum}</td>
+                                <td style="width: 150px; white-space: nowrap;">${lsx}</td>
+                                <td style="width: 240px;"><span class="product-name-text" title="${prodName}">${prodName}</span></td>
+                                <td style="min-width: 200px;">${spec}</td>
+                                <td style="width: 140px;">${nvkd}</td>
+                                <td style="width: 160px;">${role}</td>
+                                <td style="width: 95px; white-space: nowrap;">${delDate}</td>
+                                <td style="text-align: right; width: 85px; font-weight: 700;">${qty}</td>
+                            </tr>
+                        `;
+                    });
+
+                    const tableHtml = `
+                        <div class="reprint-table-wrapper">
+                            <table class="reprint-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center; width: 40px;">STT</th>
+                                        <th style="width: 110px;">Số ĐH</th>
+                                        <th style="width: 150px;">Số LSX</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Quy cách</th>
+                                        <th>NVKD</th>
+                                        <th>Quan hệ / Vai trò</th>
+                                        <th>Ngày giao</th>
+                                        <th style="text-align: right;">Số lượng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+
+                    chainDiv.innerHTML = groupTitleHtml + tableHtml;
+                    bodyDiv.appendChild(chainDiv);
+                });
+
+                headerDiv.addEventListener('click', () => {
+                    blockDiv.classList.toggle('collapsed');
+                });
+
+                blockDiv.appendChild(headerDiv);
+                blockDiv.appendChild(bodyDiv);
+                frag.appendChild(blockDiv);
+            });
+
+            container.appendChild(frag);
+        }
+
+        function initReprintEvents() {
+            const btnReOrder = document.getElementById('btnModeReOrder');
+            const btnProductCode = document.getElementById('btnModeProductCode');
+            const searchInput = document.getElementById('reprintSearchInput');
+
+            if (btnReOrder && btnProductCode) {
+                btnReOrder.addEventListener('click', () => {
+                    if (reprintViewMode === 'reorder') return;
+                    reprintViewMode = 'reorder';
+                    btnReOrder.classList.add('active');
+                    btnProductCode.classList.remove('active');
+                    triggerReprintRender();
+                });
+
+                btnProductCode.addEventListener('click', () => {
+                    if (reprintViewMode === 'productcode') return;
+                    reprintViewMode = 'productcode';
+                    btnProductCode.classList.add('active');
+                    btnReOrder.classList.remove('active');
+                    triggerReprintRender();
+                });
+            }
+
+            if (searchInput) {
+                let sTimer = null;
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(sTimer);
+                    sTimer = setTimeout(() => {
+                        reprintSearchQuery = e.target.value;
+                        triggerReprintRender();
+                    }, 150);
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
